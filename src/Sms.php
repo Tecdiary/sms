@@ -6,6 +6,7 @@ class Sms
 {
     public $logger;
     public $gateway;
+    public $status = false;
 
     public function __construct($config)
     {
@@ -19,7 +20,7 @@ class Sms
         if ($phone_numbers = $this->composeBulkNumbers($phone_numbers)) {
             return $this->gateway->sendSms($phone_numbers, $message);
         }
-        return (object) ['status' => false, 'response' => 'The provided phone number(s) were not valid.'];
+        return $this;
     }
 
     public function composeBulkNumbers($phone_numbers)
@@ -43,5 +44,10 @@ class Sms
         }
         $numbers = implode(',', $new_phone_numbers);
         return $numbers;
+    }
+
+    public function response()
+    {
+        return $this->status;
     }
 }

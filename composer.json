@@ -11,14 +11,13 @@
     ],
     "require": {
         "php": ">=7.0.28",
-        "guzzlehttp/guzzle": "^6.3@dev",
-        "monolog/monolog": "^2.0@dev",
-        "brick/phonenumber": "dev-master"
+        "guzzlehttp/guzzle": "^6.3.0",
+        "monolog/monolog": "^1.23.0",
+        "brick/phonenumber": "^0.2.0"
     },
     "autoload": {
         "psr-4": {
             "Tecdiary\\Sms\\": "src/"
         }
-    },
-    "minimum-stability": "dev"
+    }
 }

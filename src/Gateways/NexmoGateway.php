@@ -33,9 +33,9 @@ class NexmoGateway implements SmsGatewayInterface
         return $this->url;
     }
 
-    public function sendSms($mobiles, $message)
+    public function sendSms($mobile, $message)
     {
-        $mobiles = explode(',', $mobiles);
+        $mobiles = explode(',', $mobile);
         $this->composeBulkMobile($mobiles, $message);
         return $this;
     }

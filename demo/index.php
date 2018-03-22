@@ -13,7 +13,7 @@ $config = [
 
 $sms = new \Tecdiary\Sms\Sms($config);
 
-$result = $sms->send(['+919090909090', '009190909090901'], 'This is test message for Log gateway.');
+$result = $sms->send(['+919090909090', '009190909090901'], 'This is test message for Log gateway.')->response();
 ?><html>
 <head>
     <meta charset="UTF-8">
@@ -23,6 +23,6 @@ $result = $sms->send(['+919090909090', '009190909090901'], 'This is test message
     <pre/>
 
     TECDIARY/SMS DEMO
-    <?php var_dump($result->status, $result->response); ?>
+    <?php var_dump($result); ?>
 </body>
 </html>
