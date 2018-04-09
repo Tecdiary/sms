@@ -4,23 +4,37 @@ namespace Tecdiary\Sms;
 
 class Sms
 {
+    public $config;
     public $logger;
     public $gateway;
     public $status = false;
 
     public function __construct($config)
     {
-        $gateway = '\\Tecdiary\\Sms\\Gateways\\' . $config['gateway'] . 'Gateway';
+        $this->config = $config;
         $this->logger = new \Tecdiary\Sms\Log($config['log']);
-        $this->gateway = new $gateway($config, $this->logger);
+        $gateway = '\\Tecdiary\\Sms\\Gateways\\' . $config['gateway'] . 'Gateway';
+        $this->gateway = new $gateway($config);
     }
 
     public function send($phone_numbers, $message)
     {
         if ($phone_numbers = $this->composeBulkNumbers($phone_numbers)) {
-            return $this->gateway->sendSms($phone_numbers, $message);
+            try {
+                if ($result = $this->gateway->sendSms($phone_numbers, $message)) {
+                    $response = $result->response();
+                    $level = isset($response['error']) && $response['error'] ? 'error' : 'info';
+                    $this->logger->$level($this->config['gateway'].' response', $response);
+                } else {
+                    throw new \Exception('Invalid Number '.$number);
+                }
+            } catch (\Exception $e) {
+                $result = false;
+                $response = ['error' => $e->getMessage()];
+                $this->logger->error($this->config['gateway'].' response', $response);
+            }
         }
-        return $this;
+        return $result ? $result : $this;
     }
 
     public function composeBulkNumbers($phone_numbers)
@@ -30,16 +44,15 @@ class Sms
         }
         $new_phone_numbers = [];
         foreach ($phone_numbers as $number) {
-            $number = (int) $number;
-            $number = '+'.$number;
             try {
-                if (\Brick\PhoneNumber\PhoneNumber::parse($number)->isValidNumber()) {
-                    $new_phone_numbers[] = $number;
+                if ($number = \Brick\PhoneNumber\PhoneNumber::parse($number)) {
+                    $new_phone_numbers[] = $number->format(\Brick\PhoneNumber\PhoneNumberFormat::E164);
                 } else {
                     $this->logger->error('Invalid Number, skipped from list', ['phone' => $number]);
                 }
             } catch (\Brick\PhoneNumber\PhoneNumberParseException $e) {
                 $this->logger->error($e->getMessage(), ['phone' => $number]);
+                throw new \Exception($e->getMessage().' '.$number);
             }
         }
         $numbers = implode(',', $new_phone_numbers);

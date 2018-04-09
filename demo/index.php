@@ -14,6 +14,7 @@ $config = [
 $sms = new \Tecdiary\Sms\Sms($config);
 
 $result = $sms->send(['+919090909090', '009190909090901'], 'This is test message for Log gateway.')->response();
+
 ?><html>
 <head>
     <meta charset="UTF-8">

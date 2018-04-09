@@ -5,17 +5,14 @@ namespace Tecdiary\Sms\Gateways;
 class GupshupGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $params = [];
-    protected $request = '';
     protected $url = 'http://enterprise.smsgupshup.com/GatewayAPI/rest?';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['send_to'] = '';
         $this->params['msg'] = '';
         $this->params['method'] = 'sendMessage';
@@ -28,12 +25,7 @@ class GupshupGateway implements SmsGatewayInterface
 
     public function getUrl()
     {
-        foreach ($this->params as $key => $val) {
-            $this->request.= $key."=".urlencode($val);
-            $this->request.= "&";
-        }
-        $this->request = substr($this->request, 0, strlen($this->request)-1);
-        return $this->url.$this->request;
+        return $this->url.http_build_query($this->params);
     }
 
     public function sendSms($mobile, $message)
@@ -41,8 +33,12 @@ class GupshupGateway implements SmsGatewayInterface
         $this->params['send_to'] = $mobile;
         $this->params['msg'] = $message;
         $client = new \GuzzleHttp\Client();
-        $this->response = $client->get($this->getUrl())->getBody()->getContents();
-        $this->logger->info('Gupshup Response: '.$this->response);
+        $client = new \GuzzleHttp\Client();
+        try {
+            $this->response = $client->get($this->getUrl())->getBody()->getContents();
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 
@@ -51,6 +47,7 @@ class GupshupGateway implements SmsGatewayInterface
         $success = substr_count($this->response, 'success');
         $error = substr_count($this->response, 'error');
         return [
+            'error' => $error,
             'status' => [
                 'success' => $success,
                 'error' => $error

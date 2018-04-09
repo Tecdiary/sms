@@ -1,5 +1,5 @@
 # sms
-Simple SMS Gateway Package for sending short text messages. Currently Bulksms, Clickatell, Gupshup, Infobip, Mocker, MVaayoo, Nexmo, SmsAchariya, Smsapi, SmsCountry, SmsLane, twilio and Any HTTP/s based Gateways are supported with Custom Gateway. Default Log gateway can be used for testing.
+Simple SMS Gateway Package for sending short text messages. Currently Bulksms, Clickatell, Gupshup, Infobip, Itexmo, Mocker, MVaayoo, Nexmo, SmsAchariya, Smsapi, SmsCountry, SmsLane, twilio and Any HTTP/s based Gateways are supported with Custom Gateway. Default Log gateway can be used for testing.
 
 ### Installation
 
@@ -51,15 +51,16 @@ Currently these gateways are supported
 2. Clickatell
 3. Gupshup
 4. Infobip
-5. Mocker
-6. MVaayoo
-7. Nexmo
-8. SmsAchariya
-9. Smsapi
-10. SmsCountry
-11. SmsLane
-12. twilio
-12. Custom
+5. Itexmo
+6. Mocker
+7. MVaayoo
+8. Nexmo
+9. SmsAchariya
+10. Smsapi
+11. SmsCountry
+12. SmsLane
+13. Twilio
+14. Custom
 
 Default Gateway: `Log`
 

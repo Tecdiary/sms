@@ -5,17 +5,14 @@ namespace Tecdiary\Sms\Gateways;
 class ItexmoGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $params = [];
-    protected $request = '';
     protected $url = 'https://www.itexmo.com/php_api/api.php';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['3'] = $this->config[$this->config['gateway']]['api_code'];
     }
 
@@ -29,8 +26,11 @@ class ItexmoGateway implements SmsGatewayInterface
         $this->params['1'] = $mobile;
         $this->params['2'] = $message;
         $client = new \GuzzleHttp\Client();
-        $this->response = $client->post($this->getUrl(), ['form_params'=>$this->params])->getBody()->getContents();
-        $this->logger->info('Itexmo Response: '.$this->response);
+        try {
+            $this->response = $client->post($this->getUrl(), ['form_params'=>$this->params])->getBody()->getContents();
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 

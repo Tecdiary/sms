@@ -5,17 +5,14 @@ namespace Tecdiary\Sms\Gateways;
 class NexmoGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $params = [];
-    protected $request = '';
-    protected $url = 'https://rest.nexmo.com/sms/json';
+    protected $url = 'https://rest.nexmo.com/sms/json?';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['to'] = '';
         $this->params['text'] = '';
         $this->params['api_key'] = $this->config[$this->config['gateway']]['api_key'];
@@ -25,12 +22,7 @@ class NexmoGateway implements SmsGatewayInterface
 
     public function getUrl()
     {
-        foreach ($this->params as $key => $val) {
-            $this->request .= $key."=".urlencode($val);
-            $this->request .= "&";
-        }
-        $this->request = substr($this->request, 0, strlen($this->request)-1);
-        return $this->url;
+        return $this->url.http_build_query($this->params);
     }
 
     public function sendSms($mobile, $message)
@@ -45,8 +37,17 @@ class NexmoGateway implements SmsGatewayInterface
         $this->params['to'] = $mobile;
         $this->params['text'] = $message;
         $client = new \GuzzleHttp\Client();
-        $this->response = $client->post($this->getUrl(), ['form_params'=>$this->params])->getBody()->getContents();
-        $this->logger->info('Nexmo Response: '.$this->response);
+        try {
+            $response = $client->post($this->getUrl(), ['form_params'=>$this->params])->getBody()->getContents();
+            $this->response = json_decode($response, true);
+            foreach ($this->response['messages'] as $message) {
+                if ($message['status'] != 0) {
+                    throw new \Exception('To: ' .$message['to'].', Error Code: '.$message['status'].', Error Text: '.$message['error-text']);
+                }
+            }
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this->response;
     }
 
@@ -59,7 +60,6 @@ class NexmoGateway implements SmsGatewayInterface
 
     public function response()
     {
-        $response = json_decode($this->response);
-        return $response;
+        return $this->response;
     }
 }

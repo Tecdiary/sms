@@ -5,17 +5,14 @@ namespace Tecdiary\Sms\Gateways;
 class InfobipGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $params = [];
-    protected $request = '';
     protected $url = 'http://api.infobip.com/sms/1/text/query?';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['to'] = '';
         $this->params['text'] = '';
         $this->params['username'] = $this->config[$this->config['gateway']]['username'];
@@ -24,12 +21,7 @@ class InfobipGateway implements SmsGatewayInterface
 
     public function getUrl()
     {
-        foreach ($this->params as $key => $val) {
-            $this->request .= $key . "=" . urlencode($val);
-            $this->request .= "&";
-        }
-        $this->request = substr($this->request, 0, strlen($this->request)-1);
-        return $this->url.$this->request;
+        return $this->url.http_build_query($this->params);
     }
 
     public function sendSms($mobile, $message)
@@ -37,8 +29,11 @@ class InfobipGateway implements SmsGatewayInterface
         $this->params['to'] = $mobile;
         $this->params['text'] = $message;
         $client = new \GuzzleHttp\Client(['headers' => ['Accept' => 'application/json']]);
-        $this->response = $client->get($this->getUrl())->getBody()->getContents();
-        $this->logger->info('Infobip Response: '.$this->response);
+        try {
+            $this->response = $client->get($this->getUrl())->getBody()->getContents();
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 

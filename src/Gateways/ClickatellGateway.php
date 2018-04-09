@@ -5,41 +5,39 @@ namespace Tecdiary\Sms\Gateways;
 class ClickatellGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $params = [];
     protected $request = '';
-    protected $url = 'http://api.clickatell.com/http/sendmsg?';
+    protected $url = 'https://platform.clickatell.com/messages/http/send?';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['to'] = '';
-        $this->params['text'] = '';
-        $this->params['user'] = $this->config[$this->config['gateway']]['user'];
-        $this->params['api_id'] = $this->config[$this->config['gateway']]['api_id'];
-        $this->params['password'] = $this->config[$this->config['gateway']]['password'];
+        $this->params['content'] = '';
+        $this->params['apiKey'] = $this->config[$this->config['gateway']]['apiKey'];
     }
 
     public function getUrl()
     {
-        foreach ($this->params as $key => $val) {
-            $this->request .= $key . "=" . urlencode($val);
-            $this->request .= "&";
-        }
-        $this->request = substr($this->request, 0, strlen($this->request)-1);
-        return $this->url.$this->request;
+        return $this->url.http_build_query($this->params);
     }
 
     public function sendSms($mobile, $message)
     {
         $this->params['to'] = $mobile;
-        $this->params['text'] = $message;
+        $this->params['content'] = $message;
         $client = new \GuzzleHttp\Client();
-        $this->response = $client->get($this->getUrl())->getBody()->getContents();
-        $this->logger->info('Clickatell Response: '.$this->response);
+        try {
+            $response = $client->get($this->getUrl())->getBody()->getContents();
+            $this->response = json_decode($response, true);
+            if ($this->response['errorCode']) {
+                throw new \Exception($this->response['errorCode'].': '.$this->response['error']);
+            }
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 

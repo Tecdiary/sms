@@ -5,17 +5,14 @@ namespace Tecdiary\Sms\Gateways;
 class SmsapiGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $params = [];
-    protected $request = '';
     protected $url = 'https://api.smsapi.com/sms.do?';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['to'] = '';
         $this->params['message'] = '';
         $this->params['from'] = $this->config[$this->config['gateway']]['from'];
@@ -32,8 +29,14 @@ class SmsapiGateway implements SmsGatewayInterface
         $this->params['to'] = $mobile;
         $this->params['message'] = $message;
         $client = new \GuzzleHttp\Client(['headers' => ['Accept' => 'application/json']]);
-        $this->response = $client->get($this->getUrl())->getBody()->getContents();
-        $this->logger->info('Smsapi Response: '.$this->response);
+        try {
+            $this->response = $client->get($this->getUrl())->getBody()->getContents();
+            if (empty($this->response) || $this->response['error']) {
+                throw new \Exception($this->response['error'].': '.$this->response['message']);
+            }
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 

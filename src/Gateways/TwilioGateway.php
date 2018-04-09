@@ -5,25 +5,23 @@ namespace Tecdiary\Sms\Gateways;
 class TwilioGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $url = '';
     protected $params = [];
     protected $request = '';
-    protected $credentials = '';
+    protected $credentials = [];
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['To'] = '';
         $this->params['Body'] = '';
         $this->params['From'] = $this->config[$this->config['gateway']]['from'];
-        $this->$credentials['sid'] = $this->config[$this->config['gateway']]['account_sid'];
-        $this->$credentials['token'] = $this->config[$this->config['gateway']]['auth_token'];
-        $this->credentials['authorization'] = base64_encode("{$this->$credentials['sid']}:{$this->$credentials['token']}");
-        $this->url = "https://api.twilio.com/2010-04-01/Accounts/".$this->$credentials['sid']."/Messages.json";
+        $this->credentials['sid'] = $this->config[$this->config['gateway']]['account_sid'];
+        $this->credentials['token'] = $this->config[$this->config['gateway']]['auth_token'];
+        $this->credentials['authorization'] = base64_encode($this->credentials['sid'].':'.$this->credentials['token']);
+        $this->url = "https://api.twilio.com/2010-04-01/Accounts/".$this->credentials['sid']."/Messages.json";
     }
 
     public function getUrl()
@@ -39,8 +37,11 @@ class TwilioGateway implements SmsGatewayInterface
             'Accept' => 'application/json',
             'Authorization' => 'Basic ' . $this->credentials['authorization']
         ]]);
-        $this->response = $client->request('POST', $this->getUrl(), $this->params)->getBody()->getContents();
-        $this->logger->info('Twilio Response: '.$this->response);
+        try {
+            $this->response = $client->request('POST', $this->getUrl(), $this->params)->getBody()->getContents();
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 

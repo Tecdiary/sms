@@ -14,18 +14,27 @@ class Log
         $this->logger->pushHandler(new RotatingFileHandler($log['path'], 90, $log['level']));
     }
 
-    public function log($message, $level = 'debug', $extra = '')
+    public function log($message, $level = 'debug', $extra = [])
     {
-        return $this->logger->$level($message, $extra);
+        return $this->logger->$level($message, $this->checkExtra($extra));
     }
 
-    public function info($message, $extra = '')
+    public function info($message, $extra = [])
     {
-        return $this->log($message, 'info', $extra);
+        return $this->log($message, 'info', $this->checkExtra($extra));
     }
 
-    public function error($message, $extra = '')
+    public function error($message, $extra = [])
     {
-        return $this->log($message, 'error', $extra);
+        return $this->log($message, 'error', $this->checkExtra($extra));
+    }
+
+    private function checkExtra($extra)
+    {
+        $ext = false;
+        if (!is_array($extra)) {
+            $ext[] = $extra;
+        }
+        return $ext ? $ext : $extra;
     }
 }

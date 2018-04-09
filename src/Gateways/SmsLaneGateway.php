@@ -5,17 +5,14 @@ namespace Tecdiary\Sms\Gateways;
 class SmsLaneGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $params = [];
-    protected $request = '';
     protected $url = 'http://smslane.com/vendorsms/pushsms.aspx?';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['msisdn'] = '';
         $this->params['msg'] = '';
         $this->params['user'] = $this->config[$this->config['gateway']]['user'];
@@ -27,12 +24,7 @@ class SmsLaneGateway implements SmsGatewayInterface
 
     public function getUrl()
     {
-        foreach ($this->params as $key => $val) {
-            $this->request.= $key."=".urlencode($val);
-            $this->request.= "&";
-        }
-        $this->request = substr($this->request, 0, strlen($this->request)-1);
-        return $this->url.$this->request;
+        return $this->url.http_build_query($this->params);
     }
 
     public function sendSms($mobile, $message)
@@ -40,8 +32,11 @@ class SmsLaneGateway implements SmsGatewayInterface
         $this->params['msisdn'] = $mobile;
         $this->params['msg'] = $message;
         $client = new \GuzzleHttp\Client();
-        $this->response = $client->get($this->getUrl())->getBody()->getContents();
-        $this->logger->info('SmsLane Response: '.$this->response);
+        try {
+            $this->response = $client->get($this->getUrl())->getBody()->getContents();
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 

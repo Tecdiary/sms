@@ -5,17 +5,14 @@ namespace Tecdiary\Sms\Gateways;
 class SmsAchariyaGateway implements SmsGatewayInterface
 {
     public $config;
-    public $logger;
     public $response = '';
 
     protected $url = '';
     protected $params = [];
-    protected $request = '';
 
-    public function __construct($config, $logger)
+    public function __construct($config)
     {
         $this->config = $config;
-        $this->logger = $logger;
         $this->params['uid'] = $this->config[$this->config['gateway']]['uid'];
         $this->params['pin'] = $this->config[$this->config['gateway']]['pin'];
         $this->params['sender'] = '';
@@ -28,12 +25,7 @@ class SmsAchariyaGateway implements SmsGatewayInterface
 
     public function getUrl()
     {
-        foreach ($this->params as $key => $val) {
-            $this->request.= $key."=".urlencode($val);
-            $this->request.= "&";
-        }
-        $this->request = substr($this->request, 0, strlen($this->request)-1);
-        return $this->url.$this->request;
+        return $this->url.http_build_query($this->params);
     }
 
     public function sendSms($mobile, $message)
@@ -41,8 +33,11 @@ class SmsAchariyaGateway implements SmsGatewayInterface
         $this->params['mobile'] = $mobile;
         $this->params['message'] = $message;
         $client = new \GuzzleHttp\Client();
-        $this->response = $client->post($this->getUrl(), ['form_params' => $this->params])->getBody()->getContents();
-        $this->logger->info('SMS Achariya Response: '.$this->response);
+        try {
+            $this->response = $client->post($this->getUrl(), ['form_params' => $this->params])->getBody()->getContents();
+        } catch (\Exception $e) {
+            $this->response = ['error' => $e->getMessage()];
+        }
         return $this;
     }
 
@@ -69,7 +64,6 @@ class SmsAchariyaGateway implements SmsGatewayInterface
             ]
         ])->getBody()->getContents();
         $report = trim($report, ',');
-        $this->logger->info('SMS Achariya Delivery Report: '.$report);
         $exrepos = explode(',', $report);
         $sent = 0;
         $delivered = 0;
@@ -88,6 +82,7 @@ class SmsAchariyaGateway implements SmsGatewayInterface
         }
 
         return [
+            'error' => $error,
             'status' => [
                 'sent' => $sent,
                 'delivered' => $delivered,

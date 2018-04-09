@@ -34,7 +34,7 @@ return [
     'Gupshup' => ['userid'  => '', 'password' => ''],
 
     // API_CODE
-    'itexmo' => ['api_code'  => ''],
+    'Itexmo' => ['api_code'  => ''],
 
     // http://mvaayoo.com
     'MVaayoo' => ['user'  => '', 'senderID'  => ''],
@@ -52,7 +52,7 @@ return [
     'Nexmo' => ['api_key' => '', 'api_secret' => '', 'from'  => ''],
 
     // http://twilio.com
-    'twilio' => ['account_sid' => '', 'auth_token' => '', 'from'  => ''],
+    'Twilio' => ['account_sid' => '', 'auth_token' => '', 'from'  => ''],
 
     // http://mocker.in
     'Mocker' => ['sender_id'  => ''],
@@ -79,13 +79,13 @@ return [
                 'param1' => '',
                 'param2' => '',
                 'param3' => '',
-                'param4' => '',
+                'param4' => ''
             ]
         ]
-    ]
+    ],
 
     'log' => [
-        'path' => __DIR__ . '\path\to\logs\sma.log';
+        'path' => __DIR__ . '\path\to\logs\sma.log',
         'level' => 400
     ]
 ];
