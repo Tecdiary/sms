@@ -6,7 +6,6 @@ class LogGateway implements SmsGatewayInterface
 {
     public $config;
     public $response = '';
-    public $status = false;
 
     public function __construct($config)
     {
@@ -20,10 +19,7 @@ class LogGateway implements SmsGatewayInterface
 
     public function sendSms($mobile, $message)
     {
-        $params['send_to'] = $mobile;
-        $params['msg'] = $message;
-        $this->status = true;
-        $this->response = 'Saved to Log File.';
+        $this->response = ['mobile' => $mobile, 'message' => $message];
         return $this;
     }
 

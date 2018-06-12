@@ -1,8 +1,25 @@
 {
     "name": "tecdiary/sms",
+    "version": "1.0.2",
     "description": "Simple SMS Gateway Package for sending short text messages. Currently Bulksms, Clickatell, Gupshup, Infobip, Itexmo, Mocker, MVaayoo, Nexmo, SmsAchariya, Smsapi, SmsCountry, SmsLane, twilio and Any HTTP/s based Gateways are supported with Custom Gateway. Default Log gateway can be used for testing.",
     "license": "MIT",
-    "keywords": ["PHP SMS", "Bulksms", "Clickatell", "Gupshup", "Infobip", "Mocker", "MVaayoo", "Nexmo", "SmsAchariya", "Smsapi", "SmsCountry", "SmsLane", "twilio", "Custom Sms", "sms gateway"],
+    "keywords": [
+        "PHP SMS",
+        "Bulksms",
+        "Clickatell",
+        "Gupshup",
+        "Infobip",
+        "Mocker",
+        "MVaayoo",
+        "Nexmo",
+        "SmsAchariya",
+        "Smsapi",
+        "SmsCountry",
+        "SmsLane",
+        "twilio",
+        "Custom Sms",
+        "sms gateway"
+    ],
     "authors": [
         {
             "name": "Mian Saleem",
@@ -13,7 +30,7 @@
         "php": ">=7.0.28",
         "guzzlehttp/guzzle": "^6.3.0",
         "monolog/monolog": "^1.23.0",
-        "brick/phonenumber": "^0.2.0"
+        "giggsey/libphonenumber-for-php": "^8.9"
     },
     "autoload": {
         "psr-4": {

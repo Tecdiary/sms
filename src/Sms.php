@@ -24,17 +24,17 @@ class Sms
                 if ($result = $this->gateway->sendSms($phone_numbers, $message)) {
                     $response = $result->response();
                     $level = isset($response['error']) && $response['error'] ? 'error' : 'info';
-                    $this->logger->$level($this->config['gateway'].' response', $response);
+                    $this->logger->$level($this->config['gateway'] . ' response', $response);
                 } else {
-                    throw new \Exception('Invalid Number '.$number);
+                    throw new \Exception('Invalid Number ' . $number);
                 }
             } catch (\Exception $e) {
                 $result = false;
                 $response = ['error' => $e->getMessage()];
-                $this->logger->error($this->config['gateway'].' response', $response);
+                $this->logger->error($this->config['gateway'] . ' response', $response);
             }
         }
-        return $result ? $result : $this;
+        return isset($result) ? $result : $this;
     }
 
     public function composeBulkNumbers($phone_numbers)
@@ -43,16 +43,27 @@ class Sms
             $phone_numbers = explode(',', $phone_numbers);
         }
         $new_phone_numbers = [];
+        $phoneNumberUtil = \libphonenumber\PhoneNumberUtil::getInstance();
         foreach ($phone_numbers as $number) {
+            $phoneNumber = $phoneNumberUtil->parse($number, null, null, true);
             try {
-                if ($number = \Brick\PhoneNumber\PhoneNumber::parse($number)) {
-                    $new_phone_numbers[] = $number->format(\Brick\PhoneNumber\PhoneNumberFormat::E164);
+                $isPossibleNumberWithReason = $phoneNumberUtil->isPossibleNumberWithReason($phoneNumber);
+                if ($isPossibleNumberWithReason == 0) {
+                    $new_phone_numbers[] = $number;
                 } else {
-                    $this->logger->error('Invalid Number, skipped from list', ['phone' => $number]);
+                    if ($isPossibleNumberWithReason == 1) {
+                        $this->logger->error('Invalid Number, skipped from list', ['phone' => $number, 'reason' => 'INVALID_COUNTRY_CODE']);
+                    } elseif ($isPossibleNumberWithReason == 2) {
+                        $this->logger->error('Invalid Number, skipped from list', ['phone' => $number, 'reason' => 'TOO_SHORT']);
+                    } elseif ($isPossibleNumberWithReason == 3) {
+                        $this->logger->error('Invalid Number, skipped from list', ['phone' => $number, 'reason' => 'TOO_LONG']);
+                    } else {
+                        $this->logger->error('Invalid Number, skipped from list', ['phone' => $number, 'reason' => 'UNKNOWN']);
+                    }
                 }
-            } catch (\Brick\PhoneNumber\PhoneNumberParseException $e) {
+            } catch (\Exception $e) {
                 $this->logger->error($e->getMessage(), ['phone' => $number]);
-                throw new \Exception($e->getMessage().' '.$number);
+                throw new \Exception($e->getMessage() . ' ' . $number);
             }
         }
         $numbers = implode(',', $new_phone_numbers);
